@@ -27,7 +27,7 @@ class JobRequest(BaseModel):
     jobId: str
     signedURL: str
     uploader_name: str
-    createdAt: str
+    createdAt: datetime
     status: str
 
 @app.post("/submit-job")
@@ -67,6 +67,13 @@ async def job_consumer():
             print("❌ Error in consumer:", e)
             await asyncio.sleep(2)
 
+@app.get("/debug-queue") #debugger
+async def debug_queue():
+    response = await http_client.get(
+        f"{UPSTASH_REDIS_URL}/LRANGE/receipt_jobs/0/10",  # Read first 10 jobs
+        headers={"Authorization": f"Bearer {UPSTASH_REDIS_TOKEN}"}
+    )
+    return response.json()
 
 @app.on_event("startup")
 async def startup_event():
@@ -84,6 +91,9 @@ async def startup_event():
         )
 
         print("✅ Connected to Upstash Redis. Value:", get_resp.json())
+
+        #start the job consumer
+        #asyncio.create_task(job_consumer())
 
     except Exception as e:
         print("❌ Failed to connect to Upstash Redis:", e)
