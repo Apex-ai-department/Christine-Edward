@@ -3,7 +3,7 @@ import json
 import time
 from redis_client import redis_client
 
-QUEUE_NAME = "image_jobs"
+QUEUE_NAME = "jobs"
 
 def process_job(job_data):
     """Mock image processing logic"""
@@ -17,13 +17,19 @@ def consume_jobs():
             # Blocking pop (waits indefinitely for jobs)
             _, job_json = redis_client.blpop(QUEUE_NAME, timeout=30)
             job_data = json.loads(job_json)
-            
+            if job_data is None:
+                print("No jobs in queue. Waiting...")
+                continue
             # Process job
+            _, job_json = job_data  # Unpack only if job exists
+            job = json.loads(job_json)
+
             result = process_job(job_data)
-            
+            print(f"Processed: {result}")
+
             # Log result
-            with open("job_results.log", "a") as f:
-                f.write(f"{job_data['job_id']}: {result}\n")
+            #with open("job_results.log", "a") as f:
+                #f.write(f"{job_data['job_id']}: {result}\n")
             
         except Exception as e:
             print(f"Error processing job: {e}")
