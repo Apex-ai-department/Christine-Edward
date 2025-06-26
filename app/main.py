@@ -32,8 +32,17 @@ class JobRequest(BaseModel):
 
 @app.post("/submit-job")
 async def submit_job(job: JobRequest):
-    print(job)
-    return {"status": "received"}
+    job_json = job.json()  # convert Pydantic model to JSON string
+
+    resp = await http_client.post(
+        f"{UPSTASH_REDIS_URL}/LPUSH/receipt_jobs",
+        headers=headers,
+        json={"value": job_json}  # Upstash expects {"value": "<string>"}
+    )
+
+    print(f"Job pushed to Redis queue, response: {resp.json()}")
+    return {"status": "received", "redis_response": resp.json()}
+
 
 # 🔁 Redis consumer
 async def job_consumer():
