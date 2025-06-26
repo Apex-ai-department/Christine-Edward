@@ -1,6 +1,6 @@
 # requirements.txt
-
-fastapi
 uvicorn[standard]
+fastapi
 redis
 httpx
+pillow
