@@ -23,25 +23,50 @@ app = FastAPI()
 # Optional global client (used in routes)
 http_client = httpx.AsyncClient()
 
-class JobRequest(BaseModel):
-    jobId: str
-    signedURL: str
-    uploader_name: str
-    createdAt: datetime
-    status: str
+#loop through redis queue
+async def fetch_from_redis():
+    print("🚀 Starting to consume URLs from Redis queue...")
+    while True:
+        try:
+            # Call BRPOP (blocking pop for 5 seconds)
+            resp = await http_client.get(
+                f"{UPSTASH_REDIS_URL}/LPOP/receipt_jobs/5",
+                headers=headers
+            )
 
-@app.post("/submit-job")
-async def submit_job(job: JobRequest):
-    job_json = job.json()  # convert Pydantic model to JSON string
+            print("📦 Raw LPOP response:", resp.text)
 
-    resp = await http_client.post(
-        f"{UPSTASH_REDIS_URL}/LPUSH/receipt_jobs",
-        headers=headers,
-        json={"value": job_json}  # Upstash expects {"value": "<string>"}
-    )
+            result = resp.json().get("result")
 
-    print(f"Job pushed to Redis queue, response: {resp.json()}")
-    return {"status": "received", "redis_response": resp.json()}
+            if result and isinstance(result, list) and len(result) == 2:
+                _, job_json = result
+
+                print("🧾 Job JSON string:", job_json)
+
+                try:
+                    job = json.loads(job_json)
+                    url = job.get("signedURL")
+
+                    if url:
+                        print(f"✅ Pulled URL: {url}")
+                        yield url
+                    else:
+                        print("⚠️ Job missing 'signedURL':", job)
+
+                except json.JSONDecodeError as json_err:
+                    print("❌ JSON decode error:", json_err, "| Raw:", job_json)
+
+            else:
+                print("⏳ No job found, sleeping...")
+                await asyncio.sleep(1)
+
+        except Exception as e:
+            print("❌ Exception in fetch loop:", e)
+            await asyncio.sleep(2)
+
+async def print_urls_from_redis():
+    async for url in fetch_from_redis():
+        print(f"🖨️ URL from Redis: {url}")
 
 #download images from AWS
 async def download_image(url: str) -> Image.Image:
@@ -50,38 +75,6 @@ async def download_image(url: str) -> Image.Image:
         response.raise_for_status()  # Raise if not 200 OK
         img = Image.open(BytesIO(response.content))
         return img
-
-#batching images
-async def job_consumer():
-    print("🔄 Job consumer started")
-    while True:
-        try:
-            resp = await http_client.get(
-                f"{UPSTASH_REDIS_URL}/BRPOP/receipt_jobs/5",  # block 5 sec
-                headers=headers
-            )
-            data = resp.json()
-
-            if isinstance(data, list) and len(data) == 2:
-                _, job_json = data
-                job = json.loads(job_json)
-                print(f"📥 Pulled job: {job['jobId']} from {job['uploader_name']}")
-
-                # Download image from signedURL
-                img_resp = await http_client.get(job["signedURL"])
-                img_resp.raise_for_status()
-
-                image = Image.open(BytesIO(img_resp.content))
-                print(f"✅ Processed image {job['jobId']} — size: {image.size}")
-
-                # Optional: update status, save, or pass to OCR
-
-            else:
-                await asyncio.sleep(1)
-
-        except Exception as e:
-            print("❌ Error in consumer:", e)
-            await asyncio.sleep(2)
 
 @app.get("/debug-queue") #debugger
 async def debug_queue():
@@ -108,8 +101,8 @@ async def startup_event():
 
         print("✅ Connected to Upstash Redis. Value:", get_resp.json())
 
-        #start the job consumer
-        #asyncio.create_task(job_consumer())
+        #access redis queue
+        asyncio.create_task(print_urls_from_redis())
 
     except Exception as e:
         print("❌ Failed to connect to Upstash Redis:", e)
