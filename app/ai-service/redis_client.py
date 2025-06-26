@@ -1,17 +1,9 @@
-# ai_service/redis_client.py
 import redis
 
-# Initialize Redis client
+# Connect to cloud Redis (replace placeholders)
 redis_client = redis.Redis(
-    host='localhost',  # Replace with Redis server IP
-    port=6379,
-    db=0,
-    decode_responses=True  # Auto-convert bytes to strings
+    host='your-redis-host.com',  # From your token
+    port=12345,                 # From your token
+    password='your-redis-token', # From your token
+    ssl=True                    # Usually required for cloud Redis
 )
-
-# Test connection
-try:
-    redis_client.ping()
-    print("✅ Redis connected")
-except Exception as e:
-    print(f"❌ Redis connection failed: {e}")
