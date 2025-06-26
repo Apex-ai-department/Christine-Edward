@@ -43,8 +43,15 @@ async def submit_job(job: JobRequest):
     print(f"Job pushed to Redis queue, response: {resp.json()}")
     return {"status": "received", "redis_response": resp.json()}
 
+#download images from AWS
+async def download_image(url: str) -> Image.Image:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()  # Raise if not 200 OK
+        img = Image.open(BytesIO(response.content))
+        return img
 
-# 🔁 Redis consumer
+#batching images
 async def job_consumer():
     print("🔄 Job consumer started")
     while True:
