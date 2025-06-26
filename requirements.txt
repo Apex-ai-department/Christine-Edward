@@ -1,6 +1,7 @@
 # requirements.txt
 uvicorn[standard]
 fastapi
+pydantic
 redis
 httpx
 pillow

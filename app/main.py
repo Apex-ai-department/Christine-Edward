@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Form, Request
+from pydantic import BaseModel
 import httpx
 import os
 import asyncio
@@ -22,27 +23,17 @@ app = FastAPI()
 # Optional global client (used in routes)
 http_client = httpx.AsyncClient()
 
-# ➕ Route to receive JSON job payload
+class JobRequest(BaseModel):
+    jobId: str
+    signedURL: str
+    uploader_name: str
+    createdAt: str
+    status: str
+
 @app.post("/submit-job")
-async def submit_job(request: Request):
-    data = await request.json()
-
-    # Add timestamp and default status if not present
-    job = {
-        "jobId": data.get("jobId"),
-        "signedURL": data.get("signedURL"),
-        "uploader_name": data.get("uploader_name"),
-        "createdAt": data.get("createdAt") or datetime.utcnow().isoformat(),
-        "status": data.get("status", "pending")
-    }
-
-    # Push JSON string to Redis queue
-    redis_resp = await http_client.post(
-        f"{UPSTASH_REDIS_URL}/LPUSH/receipt_jobs/{json.dumps(job)}",
-        headers=headers
-    )
-
-    return {"message": "Job queued", "job": job, "redis_response": redis_resp.json()}
+async def submit_job(job: JobRequest):
+    print(job)
+    return {"status": "received"}
 
 # 🔁 Redis consumer
 async def job_consumer():
@@ -96,3 +87,7 @@ async def startup_event():
 
     except Exception as e:
         print("❌ Failed to connect to Upstash Redis:", e)
+
+@app.get("/")
+async def root():
+    return {"message": "API is working"}
