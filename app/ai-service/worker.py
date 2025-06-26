@@ -15,8 +15,7 @@ def consume_jobs():
     while True:
         try:
             # Blocking pop (waits indefinitely for jobs)
-            _, job_json = redis_client.blpop(QUEUE_NAME, timeout=30)
-            job_data = json.loads(job_json)
+            job_data = redis_client.blpop("jobs", timeout=30)  # Wait 30 sec max
             if job_data is None:
                 print("No jobs in queue. Waiting...")
                 continue
