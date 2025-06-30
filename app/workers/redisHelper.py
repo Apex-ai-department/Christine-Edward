@@ -19,20 +19,17 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
 
             result = resp.json().get("result")
 
-            if result and isinstance(result, list) and len(result) == 2:
-                _, job_json = result
-
-                print("🧾 Job JSON string:", job_json)
+            if result and len(result) > 0:
+                job_json = result[0]  # get the string
+                job = json.loads(job_json)
 
                 try:
+                    #extract data from web service jobs
                     job = json.loads(job_json)
-                    url = job.get("signedURL")
+                    jobId = job.get("jobId")
+                    urls = [file.get("s3Url") for file in job.get("files")]
 
-                    if url:
-                        print(f"✅ Pulled URL: {url}")
-                        yield url
-                    else:
-                        print("⚠️ Job missing 'signedURL':", job)
+                    yield {jobId: urls}
 
                 except json.JSONDecodeError as json_err:
                     print("❌ JSON decode error:", json_err, "| Raw:", job_json)
@@ -46,8 +43,9 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
             await asyncio.sleep(2)
 
 async def print_urls_from_redis():
-    async for url in fetch_from_redis():
-        print(f"🖨️ URL from Redis: {url}")
+    async for job in fetch_from_redis():
+        data = job.loads(job)
+        print(data)
 
 #download images from AWS
 async def download_image(url: str) -> Image.Image:

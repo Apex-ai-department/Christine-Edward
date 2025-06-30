@@ -1,0 +1,55 @@
+{
+  "jobId": "a1b2c3d4e5f6789012345678",
+  "batchId": "batch_abc123def456",
+  "type": "image_processing",
+  "files": [
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/abc456_receipt2.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/abc456_receipt2.jpg",
+      "originalName": "receipt2.jpg"
+    }
+  ],
+  "metadata": {
+    "uploaderName": "John Doe",
+    "uploadedAt": "2025-06-30T10:30:00.000Z",
+    "totalFiles": 2,
+    "successfulFiles": 2
+  },
+  "createdAt": "2025-06-30T10:30:15.000Z",
+  "status": "pending"
+}
+
+
+curl -X POST \
+  "https://viable-ram-48359.upstash.io/RPUSH/receipt_jobs" \
+  -H "Authorization: Bearer AbznAAIjcDFlMGI2NDg3NDc1OWQ0YTZhOGI2MzQ0NzlmZTE3YTEwM3AxMA" \
+  -d '{
+  "jobId": "a1b2c3d4e5f6789012345678",
+  "batchId": "batch_abc123def456",
+  "type": "image_processing",
+  "files": [
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/abc456_receipt2.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/abc456_receipt2.jpg",
+      "originalName": "receipt2.jpg"
+    }
+  ],
+  "metadata": {
+    "uploaderName": "John Doe",
+    "uploadedAt": "2025-06-30T10:30:00.000Z",
+    "totalFiles": 2,
+    "successfulFiles": 2
+  },
+  "createdAt": "2025-06-30T10:30:15.000Z",
+  "status": "pending"
+}'
