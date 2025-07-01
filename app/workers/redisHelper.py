@@ -29,7 +29,10 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
                     jobId = job.get("jobId")
                     urls = [file.get("s3Url") for file in job.get("files")]
 
-                    yield {jobId: urls}
+                    results = {"jobID": jobId,
+                               "urls": urls}
+                    
+                    yield results
 
                 except json.JSONDecodeError as json_err:
                     print("❌ JSON decode error:", json_err, "| Raw:", job_json)
@@ -42,10 +45,14 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
             print("❌ Exception in fetch loop:", e)
             await asyncio.sleep(2)
 
-async def print_urls_from_redis():
-    async for job in fetch_from_redis():
-        data = job.loads(job)
-        print(data)
+async def aiBatcher(jobID, images, batchSize):
+    while images:
+        imgList = []
+        for i in range(batchSize): 
+            if images:
+                imgList.append(images.pop())
+        aiJob = {"jobID": jobID, "imgBatch": imgList, "batchSize": len(imgList)}
+        yield aiJob
 
 #download images from AWS
 async def download_image(url: str) -> Image.Image:

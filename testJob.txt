@@ -42,6 +42,26 @@ curl -X POST \
       "s3Key": "uploads/batch_abc123def456/abc456_receipt2.jpg",
       "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/abc456_receipt2.jpg",
       "originalName": "receipt2.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
+    },
+    {
+      "s3Key": "uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "s3Url": "https://my-bucket.s3.amazonaws.com/uploads/batch_abc123def456/xyz789_receipt1.jpg",
+      "originalName": "receipt1.jpg"
     }
   ],
   "metadata": {

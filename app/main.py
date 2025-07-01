@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from PIL import Image
 from io import BytesIO
 from datetime import datetime
-from app.workers.redisHelper import fetch_from_redis, download_image, print_urls_from_redis
+from app.workers.redisHelper import fetch_from_redis, download_image, aiBatcher
 from app.routers.debug import router as debug_router
-from app.core.config import UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN, headers, http_client
+from app.core.config import UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN, headers, http_client, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
 load_dotenv()
@@ -43,4 +43,8 @@ async def startup_event():
 
 async def consume_loop():
     async for job in fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
-        print(f"🔹 Consumed job: {job}")
+        async for result in aiBatcher(job["jobID"], job["urls"], 5):
+            # process each result here
+            print(result)
+
+            #push results to a queue
