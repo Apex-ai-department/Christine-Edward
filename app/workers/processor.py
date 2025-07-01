@@ -4,16 +4,16 @@ import requests
 from io import BytesIO
 import json
 import os
-import random
+from openai import OpenAI
 
 
-def ocr_processing(image):
+def ocr_processing(image,uploaderName):
     # Mock "download" from S3
     try:
-        raw_text = pytesseract.image_to_string(image)
+        raw_text = pytesseract.image_to_string(image, lang = "jpn")
 
         # Step 4: Structure the data (simplified example)
-        structured_data = parse_receipt_text(raw_text)
+        structured_data = parse_receipt_text(raw_text,uploaderName)
 
         return {
             "raw_text": raw_text,
@@ -24,20 +24,40 @@ def ocr_processing(image):
         return None
 
 
-def parse_receipt_text(text):
-    lines = text.split('\n')
-    merchant = lines[0] if lines else "UNKNOWN"
+def parse_receipt_text(text,uploaderName): #OPENAI DONE HERE
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    # Find total (crude example)
-    total = None
-    for line in lines:
-        if "total" in line.lower():
-            total = float(''.join(c for c in line if c.isdigit() or c == '.'))
+    prompt = f"""
+    Prefer japanese language over english, only use english if it is indicated, do not try to translate to english.
+    Analyze this receipt and respond with ONLY a JSON object in this exact format:
+    {{
+        "uploader_name": "{uploaderName}",
+        "receipt_type": "decide whether it is a 'grocery' or 'internet telephone payment' or 'parking' or whatever is the best category you can decide dont forget in japanese langauge also",
+        "date": "date of purchase",
+        "company_name": "the company name on the receipt",
+        "price": "the full amount paid in Japanese yen, no unit",
+    }}
+    OCRテキスト:
+    {text}
+    """
 
-    return {
-        "merchant": merchant,
-        "total": total or 0.0
-    }
+    try:
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+
+        # Extract and parse JSON
+        json_text = response.choices[0].message.content
+        receipt_json = json.loads(json_text)
+        return receipt_json
+
+    except json.JSONDecodeError:
+        raise ValueError("GPT parsing failed", json_text)
+    except Exception as e:
+        raise Exception(f"OpenAI API error: {str(e)}")
 
     # Mock OCR and OpenAI
     # text = f"Mock text from {image_url}"
