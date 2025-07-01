@@ -1,11 +1,13 @@
 import pytest
 from PIL import Image
 from io import BytesIO
-from your_module import download_image  # adjust import path
+import redis
+from app.workers.redisHelper import download_image  # adjust import path
 from fastapi import APIRouter
 import os, httpx
 from dotenv import load_dotenv
-from app.core.config import UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN, headers, http_client
+from app.core.config import *
+from app.tasks import *
 
 load_dotenv()
 router = APIRouter()
@@ -22,6 +24,26 @@ async def debug_queue():
     )
     return response.json()
 
+r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+
+@router.get("/debug-celery-queue")
+async def debug_celery_queue():
+    queue_name = "celery"
+    length = r.llen(queue_name)
+    tasks = r.lrange(queue_name, 0, 4)  # First 5 tasks
+    decoded_tasks = []
+    for task in tasks:
+        try:
+            decoded_tasks.append(json.loads(task))
+        except Exception as e:
+            decoded_tasks.append({"raw": task, "error": str(e)})
+    return {"length": length, "tasks": decoded_tasks}
+
+@router.get("/send-test-task")
+async def send_test_task():
+    result = process_ai_result.delay({"hello": "world"})
+    return {"task_id": result.id}
+
 @pytest.mark.asyncio
 async def test_download_image_success():
     url = "https://httpbin.org/image/png"
@@ -29,3 +51,5 @@ async def test_download_image_success():
     assert isinstance(img, Image.Image)
     assert img.format == "PNG"
     assert img.size[0] > 0 and img.size[1] > 0
+
+

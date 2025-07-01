@@ -3,7 +3,8 @@ import json
 import httpx
 from io import BytesIO
 import asyncio
-from app.core.config import UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN, headers, http_client
+from app.celery import celery_app
+from app.core.config import *
 
 #loop through redis queue
 async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
@@ -14,9 +15,6 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
                 f"{UPSTASH_REDIS_URL}/LPOP/receipt_jobs/5",
                 headers=headers
             )
-
-            print("📦 Raw LPOP response:", resp.text)
-
             result = resp.json().get("result")
 
             if result and len(result) > 0:
@@ -61,3 +59,4 @@ async def download_image(url: str) -> Image.Image:
         response.raise_for_status()  # Raise if not 200 OK
         img = Image.open(BytesIO(response.content))
         return img
+    
