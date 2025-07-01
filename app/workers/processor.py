@@ -8,7 +8,6 @@ from openai import OpenAI
 
 
 def ocr_processing(image,uploaderName):
-    # Mock "download" from S3
     try:
         raw_text = pytesseract.image_to_string(image, lang = "jpn")
 
