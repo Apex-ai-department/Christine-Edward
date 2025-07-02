@@ -21,7 +21,6 @@ JOB_RESULTS_KEY = "job:{job_id}:results"  # List type
 # Status lifecycle:
 STATUSES = [
     "queued",       # Initial state
-    "preprocessing", # In batching
     "processing",    # AI working
     "completed",    # All batches done
     "failed"        # Error state
