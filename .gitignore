@@ -1,2 +1,2 @@
 # Ignore environment variable files
-app/.env
+.env
