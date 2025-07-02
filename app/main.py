@@ -48,3 +48,10 @@ async def consume_loop():
             print(result)
 
             #push results to a queue
+
+@app.get("/jobs/{job_id}/status")
+async def get_job_status(job_id: str):
+    return {
+        "status": redis_client.get(f"job:{job_id}:status"),
+        "results": redis_client.lrange(f"job:{job_id}:results", 0, -1)
+    }
