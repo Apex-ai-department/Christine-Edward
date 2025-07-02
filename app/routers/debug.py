@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from app.core.config import *
 from app.tasks import *
 from app.workers.redisHelper import *
+from app.workers.awsHelper import *
 
 load_dotenv()
 router = APIRouter()
@@ -51,5 +52,12 @@ async def test_download_image_success():
     assert isinstance(img, Image.Image)
     assert img.format == "PNG"
     assert img.size[0] > 0 and img.size[1] > 0
+
+@router.get("/jobs/{job_id}/status")
+async def get_job_status(job_id: str):
+    return {
+        "status": r.get(f"job:{job_id}:status"),
+        "results": r.lrange(f"job:{job_id}:results", 0, -1)
+    }
 
 

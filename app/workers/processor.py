@@ -57,11 +57,3 @@ def parse_receipt_text(text,uploaderName): #OPENAI DONE HERE
         raise ValueError("GPT parsing failed", json_text)
     except Exception as e:
         raise Exception(f"OpenAI API error: {str(e)}")
-
-    # Mock OCR and OpenAI
-    # text = f"Mock text from {image_url}"
-    # formatted_data = {
-    #    "total": round(random.uniform(1.0, 100.0), 2),
-    #    "merchant": f"Merchant_{random.randint(1, 100)}"
-    # }
-    # return formatted_data
