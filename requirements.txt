@@ -7,3 +7,4 @@ httpx
 pillow
 celery
 pytest
+boto3

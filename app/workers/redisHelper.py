@@ -1,10 +1,13 @@
 from PIL import Image
+from urllib.parse import urlparse
 import json
 import httpx
 from io import BytesIO
 import asyncio
 from app.celery import celery_app
 from app.core.config import *
+from app.workers.awsHelper import *
+
 
 #loop through redis queue
 async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
@@ -27,8 +30,11 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
                     jobId = job.get("jobId")
                     urls = [file.get("s3Url") for file in job.get("files")]
 
+                    #convert urls to imgs
+                    imgs = [download_image_from_s3(url) for url in urls]
+
                     results = {"jobID": jobId,
-                               "urls": urls}
+                               "imgs": imgs}
                     
                     yield results
 
@@ -52,11 +58,5 @@ async def aiBatcher(jobID, images, batchSize):
         aiJob = {"jobID": jobID, "imgBatch": imgList, "batchSize": len(imgList)}
         yield aiJob
 
-#download images from AWS
-async def download_image(url: str) -> Image.Image:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        response.raise_for_status()  # Raise if not 200 OK
-        img = Image.open(BytesIO(response.content))
-        return img
+
     

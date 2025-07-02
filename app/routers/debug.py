@@ -2,12 +2,12 @@ import pytest
 from PIL import Image
 from io import BytesIO
 import redis
-from app.workers.redisHelper import download_image  # adjust import path
 from fastapi import APIRouter
 import os, httpx
 from dotenv import load_dotenv
 from app.core.config import *
 from app.tasks import *
+from app.workers.redisHelper import *
 
 load_dotenv()
 router = APIRouter()
@@ -47,7 +47,7 @@ async def send_test_task():
 @pytest.mark.asyncio
 async def test_download_image_success():
     url = "https://httpbin.org/image/png"
-    img = await download_image(url)
+    img = await download_from_s3_url(url)
     assert isinstance(img, Image.Image)
     assert img.format == "PNG"
     assert img.size[0] > 0 and img.size[1] > 0

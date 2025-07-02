@@ -45,12 +45,13 @@ async def startup_event():
 
 async def consume_loop():
     async for job in fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
-        async for result in aiBatcher(job["jobID"], job["urls"], 5):
+        print("imgs:", job.get("imgs"))
+        #async for result in aiBatcher(job["jobID"], job["imgs"], 5):
             # process each result here
-            print("Got result:", result)
+        #    print("Got result:", result)
 
             # Send to Celery for background processing
-            res = process_ai_result.delay(result)
-            print("Task ID:", res.id)
-            print("Status:", res.status)
+            #res = process_ai_result.delay(result)
+            #print("Task ID:", res.id)
+            #print("Status:", res.status)
 
