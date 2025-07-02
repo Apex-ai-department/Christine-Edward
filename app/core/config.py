@@ -13,3 +13,16 @@ headers = {
 
 # Optional global client (used in routes)
 http_client = httpx.AsyncClient()
+
+# Key structure (per job):
+JOB_STATUS_KEY = "job:{job_id}:status"  # String type
+JOB_RESULTS_KEY = "job:{job_id}:results"  # List type
+
+# Status lifecycle:
+STATUSES = [
+    "queued",       # Initial state
+    "preprocessing", # In batching
+    "processing",    # AI working
+    "completed",    # All batches done
+    "failed"        # Error state
+]
