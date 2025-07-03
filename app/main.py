@@ -47,11 +47,11 @@ async def startup_event():
 async def consume_loop():
     async for job in fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
         #for testing the AWS
-        '''print(job)
-        awsLink = job.get("urls")
-        download_image_from_s3(awsLink[0])
+        # print(job)
+        # awsLink = job.get("urls")
+        # download_image_from_s3(awsLink[0])
 
-        print("urls:", job.get("urls"))'''
+        # print("urls:", job.get("urls"))
         
         async for aiJob in aiBatcher(job["jobID"], job["urls"], 5):
             # process each result here
