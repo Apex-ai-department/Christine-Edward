@@ -8,7 +8,8 @@ pillow
 celery
 pytest
 boto3
-pytesseract
+asgiref
 openai
 kombu
 flower
+pytesseract

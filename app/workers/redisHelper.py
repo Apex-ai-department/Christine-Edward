@@ -7,6 +7,8 @@ import asyncio
 from app.celery import celery_app
 from app.core.config import *
 from app.workers.awsHelper import *
+from openai import OpenAI
+
 
 
 #loop through redis queue
@@ -29,9 +31,11 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
                     job = json.loads(job_json)
                     jobId = job.get("jobId")
                     urls = [file.get("s3Url") for file in job.get("files")]
+                    metadata = job.get("metadata")
                     
                     results = {"jobID": jobId,
-                               "urls": urls}
+                               "urls": urls,
+                               "metadata": metadata}
                     
                     yield results
 
@@ -46,14 +50,59 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
             print("❌ Exception in fetch loop:", e)
             await asyncio.sleep(2)
 
-async def aiBatcher(jobID, urls, batchSize):
+async def aiBatcher(jobID, urls, uploaderName, batchSize):
     while urls:
         urlList = []
         for i in range(batchSize): 
             if urls:
                 urlList.append(urls.pop())
-        aiJob = {"jobID": jobID, "urlBatch": urlList, "batchSize": len(urlList)}
+        aiJob = {"jobID": jobID, "urlBatch": urlList, "batchSize": len(urlList), "uploaderName": uploaderName}
         yield aiJob
+
+async def openAI(text, uploaderName):
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    completion = client.chat.completions.create(
+        model="gpt-4o-preview",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Say hello."}
+        ]
+    )
+
+    print(completion.choices[0].message)
+
+    # prompt = f"""
+    # Prefer japanese language over english, only use english if it is indicated, do not try to translate to english.
+    # Analyze this receipt and respond with ONLY a JSON object in this exact format:
+    # {{
+    #     "uploader_name": "{uploaderName}",
+    #     "receipt_type": "decide whether it is a 'grocery' or 'internet telephone payment' or 'parking' or whatever is the best category you can decide dont forget in japanese langauge also",
+    #     "date": "date of purchase",
+    #     "company_name": "the company name on the receipt",
+    #     "price": "the full amount paid in Japanese yen, no unit",
+    # }}
+    # OCRテキスト:
+    # {text}
+    # """
+
+    # try:
+    #     # Call OpenAI API
+    #     response = client.chat.completions.create(
+    #         model="gpt-3.5-turbo",
+    #         messages=[{"role": "user", "content": prompt}],
+    #         temperature=0
+    #     )
+
+    #     # Extract and parse JSON
+    #     json_text = response.choices[0].message.content
+    #     receipt_json = json.loads(json_text)
+    #     return receipt_json
+
+    # except json.JSONDecodeError:
+    #     raise ValueError("GPT parsing failed", json_text)
+    # except Exception as e:
+    #     raise Exception(f"OpenAI API error: {str(e)}")
 
 
     

@@ -52,8 +52,9 @@ async def consume_loop():
         # download_image_from_s3(awsLink[0])
 
         # print("urls:", job.get("urls"))
+        print("uploaderName:", job["metadata"]["uploaderName"])
         
-        async for aiJob in aiBatcher(job["jobID"], job["urls"], 5):
+        async for aiJob in aiBatcher(job["jobID"], job["urls"], job["metadata"]["uploaderName"], 5):
             # process each result here
             print("Got result:", aiJob)
 
@@ -63,7 +64,7 @@ async def consume_loop():
 
             #pushing test job
             print("Sending task to Celery with aiJob:", aiJob)
-            res = res = process_ai_result.apply_async(args=[aiJob], queue='default', priority=priority)
+            res = process_ai_result.apply_async(args=[aiJob], queue='default', priority=priority)
 
             print("Task ID:", res.id)
             print("Status:", res.status)
