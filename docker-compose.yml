@@ -21,7 +21,7 @@ services:
       - .:/app
     depends_on:
       - redis
-    command: celery -A app.tasks worker --loglevel=info
+    command: celery -A app.celery worker -l info
 
   redis:
     image: redis:7-alpine

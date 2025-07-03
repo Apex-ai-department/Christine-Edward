@@ -8,3 +8,6 @@ pillow
 celery
 pytest
 boto3
+pytesseract
+openai
+kombu

@@ -1,9 +1,6 @@
 from PIL import Image
 from urllib.parse import urlparse
-import json
-import httpx
 from io import BytesIO
-import asyncio
 from app.celery import celery_app
 from app.core.config import *
 from app.workers.awsHelper import *

@@ -13,6 +13,7 @@ from app.routers.debug import router as debug_router
 from app.core.config import *
 from pathlib import Path
 from app.tasks import *
+from app.workers.awsHelper import *
 
 
 load_dotenv()
@@ -45,13 +46,21 @@ async def startup_event():
 
 async def consume_loop():
     async for job in fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
-        print("imgs:", job.get("imgs"))
-        #async for result in aiBatcher(job["jobID"], job["imgs"], 5):
+        #for testing the AWS
+        print(job)
+        awsLink = job.get("urls")
+        download_image_from_s3(awsLink[0])
+
+        '''print("urls:", job.get("urls"))
+        async for aiJob in aiBatcher(job["jobID"], job["urls"], 5):
             # process each result here
-        #    print("Got result:", result)
+            print("Got result:", aiJob)
 
             # Send to Celery for background processing
-            #res = process_ai_result.delay(result)
-            #print("Task ID:", res.id)
-            #print("Status:", res.status)
+            length = aiJob["batchSize"]
+            priority = max(0, 255 - length)
+            
+            res = process_ai_result.apply_async(args=[aiJob], priority=priority)
 
+            print("Task ID:", res.id)
+            print("Status:", res.status)'''

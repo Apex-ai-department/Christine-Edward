@@ -1,6 +1,6 @@
 from PIL import Image
 import pytesseract
-import requests
+#import requests
 from io import BytesIO
 import json
 import os
