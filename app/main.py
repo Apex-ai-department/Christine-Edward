@@ -47,11 +47,12 @@ async def startup_event():
 async def consume_loop():
     async for job in fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
         #for testing the AWS
-        print(job)
+        '''print(job)
         awsLink = job.get("urls")
         download_image_from_s3(awsLink[0])
 
-        '''print("urls:", job.get("urls"))
+        print("urls:", job.get("urls"))'''
+        
         async for aiJob in aiBatcher(job["jobID"], job["urls"], 5):
             # process each result here
             print("Got result:", aiJob)
@@ -59,8 +60,10 @@ async def consume_loop():
             # Send to Celery for background processing
             length = aiJob["batchSize"]
             priority = max(0, 255 - length)
-            
-            res = process_ai_result.apply_async(args=[aiJob], priority=priority)
+
+            #pushing test job
+            print("Sending task to Celery with aiJob:", aiJob)
+            res = res = process_ai_result.apply_async(args=[aiJob], queue='default', priority=priority)
 
             print("Task ID:", res.id)
-            print("Status:", res.status)'''
+            print("Status:", res.status)

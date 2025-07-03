@@ -21,10 +21,20 @@ services:
       - .:/app
     depends_on:
       - redis
-    command: celery -A app.celery worker -l info
+    command: celery -A app.celery worker -l info -E -Q default
 
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    
+  flower:
+    image: mher/flower
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - worker

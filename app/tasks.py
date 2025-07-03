@@ -2,7 +2,7 @@ from app.celery import celery_app
 import pytesseract
 from app.workers.processor import *
 
-@celery_app.task(name='app.workers.redisHelper.process_ai_result')
+@celery_app.task(name='app.tasks.process_ai_result')
 def process_ai_result(result):
     # e.g. store in DB, send to another service, etc.
     print("✅ Received result in Celery:", result)
@@ -13,7 +13,7 @@ def process_ai_result(result):
     #test with local images for now
     image_path = ["app/temp/0e6cfb237956bd51bd196b600-1.png"]
     imgs = [Image.open(url) for url in image_path]
-    print(imgs)
+    print("Images in Celery:", imgs)
 
     #Tesseract OCR
     #text = pytesseract.image_to_string(result)

@@ -29,7 +29,6 @@ async def fetch_from_redis(http_client, UPSTASH_REDIS_URL, headers):
                     job = json.loads(job_json)
                     jobId = job.get("jobId")
                     urls = [file.get("s3Url") for file in job.get("files")]
-                    print(urls)
                     
                     results = {"jobID": jobId,
                                "urls": urls}
